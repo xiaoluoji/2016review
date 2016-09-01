@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Reflection;
+
 
 namespace _2016_review
 {
@@ -16,7 +18,20 @@ namespace _2016_review
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            Application.Run(new MainForm());
+        }
+        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Assembly currentAssembly = Assembly.GetExecutingAssembly();
+            string resourceName = new AssemblyName(args.Name).Name + ".dll";
+            string resource = Array.Find(currentAssembly.GetManifestResourceNames(), element => element.EndsWith(resourceName));
+            using (var stream = currentAssembly.GetManifestResourceStream(resource))
+            {
+                byte[] assemblyData = new byte[stream.Length];
+                stream.Read(assemblyData, 0, assemblyData.Length);
+                return Assembly.Load(assemblyData);
+            }
         }
     }
 }
