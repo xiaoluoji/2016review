@@ -57,6 +57,7 @@
             this.multiThreadTest4Button = new System.Windows.Forms.Button();
             this.multiThreadTaskButton = new System.Windows.Forms.Button();
             this.cancelTestButton = new System.Windows.Forms.Button();
+            this.fileTestButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
@@ -336,11 +337,22 @@
             this.cancelTestButton.UseVisualStyleBackColor = true;
             this.cancelTestButton.Click += new System.EventHandler(this.cancelTestButton_Click);
             // 
+            // fileTestButton
+            // 
+            this.fileTestButton.Location = new System.Drawing.Point(216, 633);
+            this.fileTestButton.Name = "fileTestButton";
+            this.fileTestButton.Size = new System.Drawing.Size(120, 44);
+            this.fileTestButton.TabIndex = 27;
+            this.fileTestButton.Text = "文件测试";
+            this.fileTestButton.UseVisualStyleBackColor = true;
+            this.fileTestButton.Click += new System.EventHandler(this.FileTestButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1208, 785);
+            this.Controls.Add(this.fileTestButton);
             this.Controls.Add(this.cancelTestButton);
             this.Controls.Add(this.multiThreadTaskButton);
             this.Controls.Add(this.multiThreadTest4Button);
@@ -406,6 +418,7 @@
         private System.Windows.Forms.Button multiThreadTest4Button;
         private System.Windows.Forms.Button multiThreadTaskButton;
         private System.Windows.Forms.Button cancelTestButton;
+        private System.Windows.Forms.Button fileTestButton;
     }
 }
 

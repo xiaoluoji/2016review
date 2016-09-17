@@ -18,6 +18,8 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Net;
 using System.Net.Http;
+using System.Xml.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 
 
@@ -1061,5 +1063,166 @@ namespace _2016_review
             }
         }
         #endregion
+
+        #region 文件输入输出测试
+        private void FileTestButton_Click(object sender, EventArgs e)
+        {
+            //基本信息的测试
+            DirectoryInfo testDir = new DirectoryInfo(@"D:\testpic\modified");
+            Directory.CreateDirectory(@"D:\testpic\testCreateDir");
+            FileInfo[] testFiles = testDir.GetFiles("*.jpg", SearchOption.AllDirectories);
+            textBox1.AppendText("***Directory info******\n");
+            textBox1.AppendText(string.Format("FullName: {0}\n", testDir.FullName));
+            textBox1.AppendText(string.Format("Name: {0}\n", testDir.Name));
+            textBox1.AppendText(string.Format("Parent: {0}\n", testDir.Parent));
+            textBox1.AppendText(string.Format("Creation: {0}\n", testDir.CreationTime));
+            textBox1.AppendText(string.Format("Attributes: {0}\n", testDir.Attributes));
+            textBox1.AppendText(string.Format("Root: {0}\n", testDir.Root));
+            textBox1.AppendText("***************************\n");
+            textBox1.AppendText(string.Format("Found {0} *.jpg files.\n\n", testFiles.Length));
+
+            FileInfo f = testFiles[0];
+            textBox1.AppendText("**************************\n");
+            textBox1.AppendText("打印指定目录下找到的jpg文件中的其中一个文件详细信息: \n");
+
+            textBox1.AppendText(string.Format("File Name: {0} \n", f.Name));
+            textBox1.AppendText(string.Format("File size: {0}\n", f.Length));
+            textBox1.AppendText(string.Format("Creation: {0} \n", f.CreationTime));
+            textBox1.AppendText(string.Format("Attributes: {0}\n", f.Attributes));
+            textBox1.AppendText("***************************\n");
+
+            /*
+            foreach (FileInfo f in testFiles)
+            {
+                await Task.Run(() => {
+                    this.Invoke((Action)delegate
+                    {
+                        textBox1.AppendText("**************************\n");
+                        textBox1.AppendText(string.Format("File Name: {0} \n", f.Name));
+                        textBox1.AppendText(string.Format("File size: {0}\n", f.Length));
+                        textBox1.AppendText(string.Format("Creation: {0} \n", f.CreationTime));
+                        textBox1.AppendText(string.Format("Attributes: {0}\n", f.Attributes));
+                        textBox1.AppendText("***************************\n");
+                    });
+                    Thread.Sleep(10);
+                });
+            }
+            */
+            //文件流(fileStream)测试
+            FileStreamTest("Hello,钟海城");
+            //StreamReader & StreamWriter 测试
+            StreamTest(@"http://www.yaoyaolady.com");
+            //BinaryReader & BinaryWriter 测试
+            BinaryTest();
+            //对象序列化测试
+            SerializeTest();
+        }
+        //FileStreamTest 测试
+        private void FileStreamTest(string message)
+        {
+            string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FileStreamTest.txt";
+            textBox1.AppendText("测试FileSteam类\n");
+            using (FileStream fs= File.OpenWrite(savePath))
+            {
+                byte[] msgAsByteArray = Encoding.UTF8.GetBytes(message);
+                fs.Write(msgAsByteArray, 0, msgAsByteArray.Length);
+                textBox1.AppendText(string.Format("写入文件字节数: {0}\n", msgAsByteArray.Length));
+            }
+            textBox1.AppendText("写入文件测试完毕\n");
+            using (FileStream fs = File.OpenRead(savePath))
+            {
+                byte[] msgAsByteArray = new byte[fs.Length];
+                fs.Read(msgAsByteArray, 0, msgAsByteArray.Length);
+                textBox1.AppendText("从测试文件中读取的内容为:\n");
+                textBox1.AppendText(Encoding.UTF8.GetString(msgAsByteArray)+"\n");
+            }
+        }
+        //StreamWriter & StreamReader & WebRequest 测试
+        private void StreamTest(string url)
+        {
+            string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FileStreamTest.txt";
+            HttpWebRequest webReq = (HttpWebRequest)WebRequest.Create(url);
+            using (WebResponse response = webReq.GetResponse())
+            {
+                using (Stream responseStream = response.GetResponseStream())
+                {
+                    using (StreamReader sReader = new StreamReader(responseStream))
+                    {
+                        string testText = sReader.ReadToEnd();
+                        textBox1.AppendText(testText + "\n");
+                        using (StreamWriter sWriter=new StreamWriter(savePath))
+                        {
+                            sWriter.Write(testText);
+                        }
+                    }
+                }
+            }
+        }
+        //BinaryReader & BinaryWriter 测试
+        private void BinaryTest()
+        {
+            string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BinData.dat";
+            using (BinaryWriter bw = new BinaryWriter(File.OpenWrite(savePath)))
+            {
+                //输出BaseStream的类型, 这里是System.IO.FileStream
+                textBox1.AppendText(string.Format("BaseStream is : {0} \n", bw.BaseStream));
+                double aDouble = 1234.567;
+                int anInt = 34567;
+                string aString = "A, B, C";
+                //写数据
+                bw.Write(aDouble);
+                bw.Write(anInt);
+                bw.Write(aString);
+            }
+            textBox1.AppendText("BinaryWriter测试写入数据完毕!\n");
+            using (BinaryReader br = new BinaryReader(File.OpenRead(savePath)))
+            {
+                textBox1.AppendText(br.ReadDouble() + "\n");
+                textBox1.AppendText(br.ReadInt32() + "\n");
+                textBox1.AppendText(br.ReadString() + "\n");
+            }
+            textBox1.AppendText("BinaryReader测试读取数据完毕!\n");
+
+        }
+
+        //对象序列化测试
+        [Serializable]
+        public class UserPrefs
+        {
+            public string WindowColor;
+            public int FontSize;
+            public string[] Username;
+            public int[] MemSize;
+            public UserPrefs()
+            {
+                WindowColor = "Red";
+                FontSize = 12;
+                Username = new string[] { "Nobody","Administrator","www"};
+                MemSize = new int[] { 4, 8, 16, 32, 64 };
+            }
+        }
+        private void SerializeTest()
+        {
+            UserPrefs userData = new UserPrefs();
+            userData.WindowColor = "Yellow";
+            userData.FontSize = 16;
+            string binSavePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\binFormat.dat";
+            string xmlSavePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\xmlFormat.xml";
+            //使用BinaryFormatter以二进制格式持久化状态数据
+            BinaryFormatter binFormat = new BinaryFormatter();
+            using (Stream fsStream = File.OpenWrite(binSavePath))
+            {
+                binFormat.Serialize(fsStream, userData);
+            }
+            XmlSerializer xmlFormat = new XmlSerializer(typeof(UserPrefs));
+            using (Stream fsStream = File.OpenWrite(xmlSavePath))
+            {
+                xmlFormat.Serialize(fsStream, userData);
+            }
+
+        }
+
+        #endregion
+
     }
 }
